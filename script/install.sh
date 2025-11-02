@@ -343,11 +343,13 @@ EOF
         if [[ -n "$API_HOST_ARG" && -n "$NODE_ID_ARG" && -n "$API_KEY_ARG" ]]; then
             generate_v2node_config "$API_HOST_ARG" "$NODE_ID_ARG" "$API_KEY_ARG"
             echo -e "${green}已根据参数生成 /etc/v2node/config.json${plain}"
-            first_install=false
-        else
+                        first_install=false
+            else
+        if [[ -f config.json ]]; then
             cp config.json /etc/v2node/
-            first_install=true
         fi
+        first_install=true
+    fi
     else
         if [[ x"${release}" == x"alpine" ]]; then
             service v2node start
@@ -404,7 +406,7 @@ EOF
             # 生成配置文件（覆盖可能从包中复制的模板）
             generate_v2node_config "$api_host" "$node_id" "$api_key"
         else
-            echo "${green}已跳过自动生成配置。${plain}如需后续生成，可执行: v2node generate"
+            echo -e "${green}已跳过自动生成配置。如需后续生成，可执行: v2node generate${plain}"
         fi
     fi
 }
