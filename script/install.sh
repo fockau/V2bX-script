@@ -263,36 +263,40 @@ if [[ -e /usr/local/v2node/ ]]; then
 rm -rf /usr/local/v2node/
 fi
 
-mkdir -p /usr/local/v2node/
-cd /usr/local/v2node/ || exit 1
+mkdir /usr/local/v2node/ -p
+cd /usr/local/v2node/
 
-if [[ -z "$version_param" ]]; then
-    last_version="v0.1"
-    echo -e "${green}使用固定版本：${last_version}，开始安装...${plain}"
+if  [[ -z "$version_param" ]] ; then
+    last_version=$(curl -Ls "https://api.github.com/repos/wyx2685/v2node/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+    if [[ ! -n "$last_version" ]]; then
+        echo -e "${red}检测 v2node 版本失败，可能是超出 Github API 限制，请稍后再试，或手动指定 v2node 版本安装${plain}"
+        exit 1
+    fi
+    echo -e "${green}检测到最新版本：${last_version}，开始安装...${plain}"
     url="https://github.com/fockau/v2node/releases/download/v0.1/v2node.zip"
-    curl -sL "$url" | pv -s 30M -W -N "下载进度" > /usr/local/v2node/v2node.zip
+    curl -sL "$url" | pv -s 30M -W -N "下载进度" > /usr/local/v2node/v2node-linux.zip
     if [[ $? -ne 0 ]]; then
         echo -e "${red}下载 v2node 失败，请确保你的服务器能够下载 Github 的文件${plain}"
         exit 1
     fi
 else
-    last_version="v0.1"
+last_version=$version_param
     url="https://github.com/fockau/v2node/releases/download/v0.1/v2node.zip"
-    curl -sL "$url" | pv -s 30M -W -N "下载进度" > /usr/local/v2node/v2node.zip
+    curl -sL "$url" | pv -s 30M -W -N "下载进度" > /usr/local/v2node/v2node-linux.zip
     if [[ $? -ne 0 ]]; then
         echo -e "${red}下载 v2node $1 失败，请确保此版本存在${plain}"
         exit 1
     fi
 fi
 
-unzip v2node.zip
-rm -f v2node.zip
+unzip v2node-linux.zip
+rm v2node-linux.zip -f
 chmod +x v2node
-mkdir -p /etc/v2node/
+mkdir /etc/v2node/ -p
 cp geoip.dat /etc/v2node/
 cp geosite.dat /etc/v2node/
 if [[ x"${release}" == x"alpine" ]]; then
-    rm -f /etc/init.d/v2node
+    rm /etc/init.d/v2node -f
     cat <<EOF > /etc/init.d/v2node
 #!/sbin/openrc-run
 
@@ -314,7 +318,7 @@ chmod +x /etc/init.d/v2node
 rc-update add v2node default
 echo -e "${green}v2node ${last_version}${plain} 安装完成，已设置开机自启"
 else
-rm -f /etc/systemd/system/v2node.service
+rm /etc/systemd/system/v2node.service -f
 cat <<EOF > /etc/systemd/system/v2node.service
 [Unit]
 Description=v2node Service
@@ -344,6 +348,7 @@ echo -e "${green}v2node ${last_version}${plain} 安装完成，已设置开机�
 fi
 
 if [[ ! -f /etc/v2node/config.json ]]; then
+    # 如果通过 CLI 传入了完整参数，则直接生成配置并跳过交互
     if [[ -n "$API_HOST_ARG" && -n "$NODE_ID_ARG" && -n "$API_KEY_ARG" ]]; then
         generate_v2node_config "$API_HOST_ARG" "$NODE_ID_ARG" "$API_KEY_ARG"
         echo -e "${green}已根据参数生成 /etc/v2node/config.json${plain}"
@@ -369,10 +374,11 @@ else
     first_install=false
 fi
 
-curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/fockau/V2bX-script/main/script/v2node.sh
+
+curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/wyx2685/v2node/main/script/v2node.sh
 chmod +x /usr/bin/v2node
 
-cd "$cur_dir" || true
+cd $cur_dir
 rm -f install.sh
 echo "------------------------------------------"
 echo -e "${green}【广告位招租】${plain}管理脚本使用方法: "
