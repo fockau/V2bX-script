@@ -366,7 +366,7 @@ EOF
     fi
 
 
-    curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/fockau/V2bX-script/main/script/v2node.sh
+    curl -o /usr/bin/v2node -Ls https://raw.githubusercontent.com/fockau/V2bX-script/master/script/v2node.sh
     chmod +x /usr/bin/v2node
 
     cd $cur_dir
