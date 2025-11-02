@@ -404,7 +404,7 @@ EOF
             # 生成配置文件（覆盖可能从包中复制的模板）
             generate_v2node_config "$api_host" "$node_id" "$api_key"
         else
-            echo "${green}已跳过自动生成配置。如需后续生成，可执行: v2node generate${plain}"
+            echo "${green}已跳过自动生成配置。${plain}如需后续生成，可执行: v2node generate"
         fi
     fi
 }
